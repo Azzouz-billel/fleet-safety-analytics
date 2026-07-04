@@ -1,0 +1,8 @@
+data/raw/
+*.mp4
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+out/

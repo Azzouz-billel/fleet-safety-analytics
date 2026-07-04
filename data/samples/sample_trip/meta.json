@@ -1,0 +1,12 @@
+{
+  "trip_id": "sample_trip",
+  "vehicle_id": "veh_demo",
+  "driver_id": "drv_demo",
+  "start_time": "2026-07-04T12:00:00Z",
+  "fps": 30,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "default_speed_limit_kmh": 100.0
+}

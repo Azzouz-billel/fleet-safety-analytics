@@ -1,0 +1,7 @@
+numpy>=1.26
+pandas>=2.1
+opencv-python>=4.9
+matplotlib>=3.8
+folium>=0.15
+pydantic>=2.5
+pytest>=8.0

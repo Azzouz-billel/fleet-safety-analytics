@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fleetsafety"
+version = "0.1.0"
+description = "Fleet safety analytics: explainable driver-safety reports from trip GPS data"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "matplotlib>=3.8",
+    "folium>=0.15",
+    "pydantic>=2.5",
+]
+
+[project.scripts]
+fleetsafety = "fleetsafety.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
