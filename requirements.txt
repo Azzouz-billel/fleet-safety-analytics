@@ -5,3 +5,5 @@ matplotlib>=3.8
 folium>=0.15
 pydantic>=2.5
 pytest>=8.0
+ultralytics>=8.1
+supervision>=0.20,<0.30

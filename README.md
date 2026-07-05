@@ -77,8 +77,25 @@ src/fleetsafety/
 └── cli.py            # `fleetsafety process|validate <trip_dir>`
 ```
 
+## Vision (Phase 2, in progress)
+
+Vision deps are heavy; install CPU-only torch first to avoid the CUDA download:
+
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+```
+
+`vision/detect.py` maps frame index ↔ trip time (same clock as GPS/IMU) and
+runs YOLO vehicle detection on sampled frames; `vision/track.py` adds
+ByteTrack ids. Both import their models lazily — the GPS-only pipeline
+works without them. Validated on real highway footage (yolov8n, CPU).
+
 ## Status
 
-- ✅ Phase 1 — GPS-only single-trip report (this repo)
-- ⏳ Phase 2 — vision events (requires a real recorded trip first)
+- ✅ Phase 1 — GPS-only single-trip report; validated on 86 real car trips
+  (UCI GPS Trajectories) + synthetic sample
+- 🔄 Phase 2 — vision events: frame–clock sync, detection, tracking done;
+  tailgating + event clips need forward-facing footage with own-speed
+  (comma2k19/KITTI or a real recorded trip)
 - ⏳ Phase 3 — multi-vehicle backend + dashboard
