@@ -41,13 +41,19 @@ data/raw/<trip_id>/
 
 ### Recording a real trip with a phone
 
-1. Mount the phone in the vehicle. Use any GPS-logger app that exports CSV at ~1 Hz
-   (e.g. GPSLogger on Android) with time, lat, lon, and speed if available.
-2. Rename/massage the export to the `gps.csv` columns above (`timestamp,lat,lon,speed_mps,heading`).
-3. Write a `meta.json` (copy `data/samples/sample_trip/meta.json` and edit ids,
-   `start_time`, and `default_speed_limit_kmh` for the road driven).
-4. Put both in `data/raw/<trip_id>/` and run `fleetsafety process data/raw/<trip_id>`.
-5. Run `fleetsafety validate data/raw/<trip_id>` to check device speed vs GPS-derived speed.
+1. Mount the phone in the vehicle. Log GPS at 1 Hz with **GPSLogger** (Android,
+   CSV export) or **Open GPX Tracker** (iPhone, GPX export).
+2. Copy the exported file to this machine and build a trip package from it:
+
+   ```bash
+   fleetsafety import ~/Downloads/20260705.csv --trip-id trip_2026-07-05_veh01 --limit 80
+   ```
+
+   Both GPSLogger CSV and GPX are auto-detected; `--limit` is the default
+   speed limit (km/h) of the roads driven. The package lands in
+   `data/raw/<trip_id>/` (override with `--out`).
+3. `fleetsafety process data/raw/<trip_id>` → report + score.
+4. `fleetsafety validate data/raw/<trip_id>` to check device speed vs GPS-derived speed.
 
 ## Tests
 

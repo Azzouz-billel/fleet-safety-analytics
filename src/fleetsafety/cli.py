@@ -1,5 +1,7 @@
 """Command-line entry point.
 
+    fleetsafety import <export>      → build a trip package from a phone
+                                       GPS-logger export (CSV or GPX)
     fleetsafety process <trip_dir>   → <trip_dir>/out/result.json + report.html
     fleetsafety validate <trip_dir>  → device speed vs GPS-derived speed accuracy
 
@@ -19,6 +21,7 @@ from . import gps as gps_mod
 from .events.harsh_accel import detect_harsh_accel
 from .events.harsh_braking import detect_harsh_braking
 from .events.speeding import detect_speeding
+from .importer import import_trip
 from .ingest import TripPackageError, load_trip
 from .report import generate_report
 from .schemas import Meta, TripResult, TripSummary
@@ -113,8 +116,23 @@ def main(argv: list[str] | None = None) -> int:
     p_validate = sub.add_parser("validate", help="check device speed vs GPS-derived speed")
     p_validate.add_argument("trip_dir", type=Path)
 
+    p_import = sub.add_parser("import", help="build a trip package from a GPS-logger export (CSV/GPX)")
+    p_import.add_argument("source", type=Path, help="GPSLogger CSV or GPX file")
+    p_import.add_argument("--trip-id", default=None, help="default: source file name")
+    p_import.add_argument("--vehicle-id", default="veh_01")
+    p_import.add_argument("--driver-id", default="drv_01")
+    p_import.add_argument("--limit", type=float, default=100.0, help="default speed limit km/h")
+    p_import.add_argument("--out", type=Path, default=None, help="default data/raw/<trip_id>")
+
     args = parser.parse_args(argv)
     try:
+        if args.command == "import":
+            trip_id = args.trip_id or args.source.stem
+            out_dir = args.out or Path("data/raw") / trip_id
+            package = import_trip(args.source, out_dir, trip_id, args.vehicle_id, args.driver_id, args.limit)
+            print(f"trip package ready: {package}")
+            print(f"next: fleetsafety process {package}")
+            return 0
         if args.command == "process":
             result = process_trip(args.trip_dir, args.out)
             print(json.dumps(result.summary.model_dump(), indent=2))
