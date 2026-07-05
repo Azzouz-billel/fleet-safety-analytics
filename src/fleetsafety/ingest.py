@@ -51,8 +51,11 @@ def load_trip(trip_dir: str | Path) -> tuple[Meta, pd.DataFrame, Optional[pd.Dat
         raise TripPackageError(f"invalid meta.json in {trip_dir}: {exc}") from exc
 
     gps = _read_series(trip_dir / "gps.csv", GPS_COLUMNS, meta)
-    if gps.empty:
-        raise TripPackageError(f"gps.csv in {trip_dir} has no rows")
+    if len(gps) < 2:
+        raise TripPackageError(
+            f"gps.csv in {trip_dir} has {len(gps)} fix(es); at least 2 are "
+            "needed to compute speed and duration"
+        )
 
     imu_path = trip_dir / "imu.csv"
     imu = _read_series(imu_path, IMU_COLUMNS, meta) if imu_path.is_file() else None

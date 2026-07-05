@@ -25,6 +25,22 @@ def test_missing_required_files_raise_clear_error(tmp_path):
         load_trip(tmp_path)
 
 
+def test_single_fix_trip_is_rejected_not_crashed(tmp_path):
+    meta = {
+        "trip_id": "t1",
+        "vehicle_id": "v1",
+        "driver_id": "d1",
+        "start_time": "2026-07-05T09:00:00Z",
+        "default_speed_limit_kmh": 100,
+    }
+    (tmp_path / "meta.json").write_text(json.dumps(meta))
+    (tmp_path / "gps.csv").write_text(
+        "timestamp,lat,lon,speed_mps,heading\n2026-07-05T09:00:00Z,35.71,-0.63,10,45\n"
+    )
+    with pytest.raises(TripPackageError, match="at least 2"):
+        load_trip(tmp_path)
+
+
 def test_epoch_timestamps_normalize_to_seconds_from_start(tmp_path):
     start_epoch = 1_780_000_000
     meta = {
