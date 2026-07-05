@@ -30,6 +30,18 @@ HARSH_MERGE_GAP_S = 3.0       # spikes closer than this merge into one event
 HARSH_BRAKING_SEVERITY_BOUNDS = {"low": 5.0, "medium": 7.0}
 HARSH_ACCEL_SEVERITY_BOUNDS = {"low": 4.5, "medium": 6.0}
 
+# --- Tailgating (vision/tailgating.py) -------------------------------------
+
+TAILGATING_MAX_GAP_S = 2.0        # time-gap to the lead vehicle that flags
+TAILGATING_MIN_DURATION_S = 3.0   # must be sustained this long
+TAILGATING_MIN_SPEED_MPS = 5.0    # ignore below ~18 km/h (queues, parking)
+# Severity by minimum gap: below "high" bound → high, below "medium" → medium,
+# else low (already under TAILGATING_MAX_GAP_S to be an event at all).
+TAILGATING_SEVERITY_BOUNDS_S = {"high": 1.0, "medium": 1.5}
+LEAD_VEHICLE_WIDTH_M = 1.8        # assumed car width for pinhole distance
+CAMERA_FOCAL_WIDTH_RATIO = 0.85   # focal_px ≈ ratio × frame width (~62° hFOV)
+VISION_ANALYSIS_HZ = 5.0          # target detection rate (frames sampled/s)
+
 # --- Scoring (scoring.py) --------------------------------------------------
 
 SCORE_WEIGHTS = {

@@ -159,4 +159,6 @@ def _render_page(result: TripResult, meta: Meta, chart_b64: str, map_html: str) 
 def _event_detail(event) -> str:
     if event.type == "speeding":
         return f"{event.speed_kmh:.0f} km/h in a {event.limit_kmh:.0f} zone"
+    if event.type == "tailgating":
+        return f"{event.gap_s:.1f} s gap at {event.speed_kmh:.0f} km/h"
     return f"peak {event.peak_mps2:.1f} m/s²"

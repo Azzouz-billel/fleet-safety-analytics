@@ -16,7 +16,9 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
+from . import config
 from . import gps as gps_mod
 from .events.harsh_accel import detect_harsh_accel
 from .events.harsh_braking import detect_harsh_braking
@@ -24,7 +26,7 @@ from .events.speeding import detect_speeding
 from .importer import import_trip
 from .ingest import TripPackageError, load_trip
 from .report import generate_report
-from .schemas import Meta, TripResult, TripSummary
+from .schemas import Event, Meta, TripResult, TripSummary
 from .scoring import score_trip
 
 logger = logging.getLogger("fleetsafety")
@@ -44,11 +46,12 @@ def process_trip(trip_dir: Path, out_dir: Path | None = None) -> TripResult:
         *detect_speeding(gps, meta),
         *detect_harsh_braking(gps, meta, accel),
         *detect_harsh_accel(gps, meta, accel),
+        *_vision_events(trip_dir, meta, gps),
     ]
     events.sort(key=lambda e: e.start_s or 0.0)
 
     distance_km = gps_mod.trip_distance_km(gps)
-    counts = {"speeding": 0, "harsh_braking": 0, "harsh_accel": 0}
+    counts = {"speeding": 0, "harsh_braking": 0, "harsh_accel": 0, "tailgating": 0}
     for event in events:
         counts[event.type] = counts.get(event.type, 0) + 1
 
@@ -69,10 +72,47 @@ def process_trip(trip_dir: Path, out_dir: Path | None = None) -> TripResult:
 
     out_dir = out_dir or trip_dir / "out"
     out_dir.mkdir(parents=True, exist_ok=True)
+    _attach_clips(events, trip_dir / "video.mp4", out_dir)
     (out_dir / "result.json").write_text(result.model_dump_json(indent=2) + "\n")
     generate_report(result, meta, gps, out_dir / "report.html")
     logger.info("wrote %s and report.html (score %.1f)", out_dir / "result.json", result.score.value)
     return result
+
+
+def _vision_events(trip_dir: Path, meta: Meta, gps: pd.DataFrame) -> list[Event]:
+    """Tailgating from the road camera. The vision stage is strictly
+    optional: no video or no vision deps → GPS-only pipeline, no error."""
+    video = trip_dir / "video.mp4"
+    if not video.is_file():
+        return []
+    try:
+        from .vision.detect import iter_frames, video_fps
+        from .vision.tailgating import detect_tailgating
+        from .vision.track import track_vehicles
+    except ImportError as exc:
+        logger.warning("video.mp4 present but vision deps missing (%s); GPS-only run", exc)
+        return []
+
+    fps = video_fps(video)
+    every_n = max(1, round(fps / config.VISION_ANALYSIS_HZ))
+    _, first_frame = next(iter_frames(video))
+    height, width = first_frame.shape[:2]
+    logger.info("vision stage: %.1f fps video, analyzing every %d frames", fps, every_n)
+    tracked = track_vehicles(video, every_n=every_n)
+    return detect_tailgating(tracked, gps, meta, width, height, meta.camera_focal_px)
+
+
+def _attach_clips(events: list[Event], video: Path, out_dir: Path) -> None:
+    """Give every event a playable ±5 s clip when the trip has video."""
+    if not video.is_file():
+        return
+    from .vision.clips import export_clip
+
+    for i, event in enumerate(events):
+        clip_path = out_dir / "clips" / f"{i:02d}_{event.type}.mp4"
+        written = export_clip(video, event.start_s or 0.0, event.end_s or 0.0, clip_path)
+        if written is not None:
+            event.clip = str(written.relative_to(out_dir))
 
 
 def validate_trip(trip_dir: Path) -> bool:

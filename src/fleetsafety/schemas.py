@@ -24,6 +24,7 @@ class Meta(BaseModel):
     start_time: datetime
     fps: Optional[int] = None
     resolution: Optional[tuple[int, int]] = None
+    camera_focal_px: Optional[float] = None  # for tailgating distance; else estimated
     default_speed_limit_kmh: float = 100.0
 
 
@@ -54,7 +55,8 @@ class Event(BaseModel):
 
     `start`/`end` are wall-clock HH:MM:SS for the report; `start_s`/`end_s`
     are seconds from trip start (the shared clock, used for clip export
-    in Phase 2). `peak_mps2` is set for harsh braking/acceleration.
+    in Phase 2). `peak_mps2` is set for harsh braking/acceleration,
+    `gap_s` (minimum following time-gap) for tailgating.
     """
 
     type: EventType
@@ -67,6 +69,7 @@ class Event(BaseModel):
     speed_kmh: Optional[float] = None
     limit_kmh: Optional[float] = None
     peak_mps2: Optional[float] = None
+    gap_s: Optional[float] = None
     severity: Severity
     clip: Optional[str] = None
 

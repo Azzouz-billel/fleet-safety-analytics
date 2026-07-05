@@ -23,6 +23,7 @@ CANONICAL_RESULT = {
             "speed_kmh": 118.0,
             "limit_kmh": 100.0,
             "peak_mps2": None,
+            "gap_s": None,
             "severity": "high",
             "clip": None,
         }

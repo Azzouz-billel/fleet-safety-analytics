@@ -88,14 +88,24 @@ pip install -r requirements.txt
 
 `vision/detect.py` maps frame index ↔ trip time (same clock as GPS/IMU) and
 runs YOLO vehicle detection on sampled frames; `vision/track.py` adds
-ByteTrack ids. Both import their models lazily — the GPS-only pipeline
-works without them. Validated on real highway footage (yolov8n, CPU).
+ByteTrack ids; `vision/tailgating.py` estimates the following time-gap to
+the lead vehicle (pinhole distance ÷ own GPS speed) and flags sustained
+gaps under 2 s; `vision/clips.py` exports a ±5 s clip per event.
+
+When a trip package contains `video.mp4`, `fleetsafety process` runs the
+vision stage automatically and every event in result.json gets a `clip`
+path. No video or no vision deps → the GPS-only pipeline runs unchanged.
+Set `camera_focal_px` in meta.json when the camera is calibrated
+(distance estimates are otherwise based on a typical phone field of view).
+
+Validated on real forward-facing footage (KITTI drive 0015): tailgating
+events with plausible gaps, playable clips, no GPS-event false positives.
 
 ## Status
 
 - ✅ Phase 1 — GPS-only single-trip report; validated on 86 real car trips
   (UCI GPS Trajectories) + synthetic sample
-- 🔄 Phase 2 — vision events: frame–clock sync, detection, tracking done;
-  tailgating + event clips need forward-facing footage with own-speed
-  (comma2k19/KITTI or a real recorded trip)
+- ✅ Phase 2 — vision events: sync, detection, tracking, tailgating, event
+  clips; validated on staged synthetic scenarios + a real KITTI drive.
+  Re-validate on own recorded footage when a vehicle is available.
 - ⏳ Phase 3 — multi-vehicle backend + dashboard

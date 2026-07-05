@@ -18,6 +18,7 @@ def test_result_json_counts_all_injected_events(sample_result):
         "speeding": 2,
         "harsh_braking": 1,
         "harsh_accel": 1,
+        "tailgating": 0,
     }
 
 
