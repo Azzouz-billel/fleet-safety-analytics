@@ -55,6 +55,26 @@ data/raw/<trip_id>/
 3. `fleetsafety process data/raw/<trip_id>` → report + score.
 4. `fleetsafety validate data/raw/<trip_id>` to check device speed vs GPS-derived speed.
 
+## Fleet platform (Phase 3)
+
+Store processed trips in a SQLite fleet database and browse them:
+
+```bash
+fleetsafety load data/raw/*/out/result.json    # → fleet.db (+ weekly scores)
+fleetsafety serve                              # → http://127.0.0.1:8100
+```
+
+- **/** — fleet overview: drivers ranked worst→best (distance-weighted mean
+  of the last 8 driven weeks), sparklines, fleet trend.
+- **/drivers/{id}** — score trend, event mix, weekly table, worst trips.
+- **/trips/{id}** — trip replay: route polyline + event pins + clip list.
+- **/map** — risk heatmap centred on the #1 hotspot.
+- JSON API under `/api/`: `POST /api/trips` (a result.json document),
+  `GET /api/drivers[/{id}]`, `GET /api/trips/{id}`, `GET /api/reports/{id}`,
+  `GET /api/map/hotspots`.
+
+All labels are French · Arabic; framing is coaching, not surveillance.
+
 ## Tests
 
 ```bash
@@ -108,4 +128,7 @@ events with plausible gaps, playable clips, no GPS-event false positives.
 - ✅ Phase 2 — vision events: sync, detection, tracking, tailgating, event
   clips; validated on staged synthetic scenarios + a real KITTI drive.
   Re-validate on own recorded footage when a vehicle is available.
-- ⏳ Phase 3 — multi-vehicle backend + dashboard
+- ✅ Phase 3 — fleet platform: SQLite + FastAPI + bilingual dashboard,
+  weekly driver scores, trip replay, risk heatmap; demoed on 86 real trips
+- ⏳ Phase 4+ — edge deployment, plate OCR, driver-facing camera (needs
+  hardware + a real pilot)

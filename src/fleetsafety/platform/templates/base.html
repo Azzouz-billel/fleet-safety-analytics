@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ L("app_title") }}</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; color: #222; background: #f7f8fa; }
+  header { background: #1a4f8b; color: #fff; padding: 14px 28px; display: flex;
+           align-items: baseline; gap: 24px; flex-wrap: wrap; }
+  header h1 { font-size: 1.15rem; margin: 0; }
+  header .tagline { color: #cfe0f5; font-size: 0.85rem; }
+  nav a { color: #fff; margin-right: 18px; text-decoration: none; opacity: 0.85; }
+  nav a:hover { opacity: 1; text-decoration: underline; }
+  main { max-width: 1080px; margin: 24px auto; padding: 0 20px; }
+  h2 { font-size: 1.15rem; }
+  table { border-collapse: collapse; width: 100%; background: #fff; font-size: 0.92rem; }
+  th, td { border: 1px solid #e2e6ea; padding: 8px 12px; text-align: left; }
+  th { background: #eef2f6; font-weight: 600; }
+  tr:hover td { background: #f2f6fb; }
+  a { color: #1a4f8b; }
+  .score-badge { display: inline-block; min-width: 44px; text-align: center; padding: 3px 8px;
+                 border-radius: 12px; color: #fff; font-weight: 600; }
+  .score-good { background: #1f9d55; }
+  .score-mid { background: #e6a100; }
+  .score-bad { background: #d63031; }
+  .muted { color: #667; font-size: 0.85rem; }
+  .card { background: #fff; border: 1px solid #e2e6ea; border-radius: 8px;
+          padding: 16px 20px; margin-bottom: 20px; }
+  img.chart { max-width: 100%; }
+  footer { text-align: center; color: #889; font-size: 0.8rem; margin: 32px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>{{ L("app_title") }}</h1>
+  <span class="tagline">{{ L("tagline") }}</span>
+  <nav>
+    <a href="/">{{ L("fleet_overview") }}</a>
+    <a href="/map">{{ L("risk_map") }}</a>
+  </nav>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>{{ L("coaching_note") }}</footer>
+</body>
+</html>

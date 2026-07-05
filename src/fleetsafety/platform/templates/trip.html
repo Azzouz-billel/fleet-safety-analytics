@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ L("trips") }} — {{ trip.id }}</h2>
+<p class="muted">
+  {{ L("driver") }}: <a href="/drivers/{{ trip.driver_id }}">{{ trip.driver_id }}</a> ·
+  {{ L("date") }}: {{ trip.start_time or "—" }} ·
+  {{ L("distance") }}: {{ trip.distance_km }} km ·
+  {{ L("safety_score") }}:
+  <span class="score-badge {% if trip.score >= 85 %}score-good{% elif trip.score >= 65 %}score-mid{% else %}score-bad{% endif %}">
+    {{ "%.0f"|format(trip.score) }}
+  </span>
+</p>
+
+{{ map_html|safe }}
+
+<h2>{{ L("events") }}</h2>
+<table>
+<tr><th>{{ L("event_type") }}</th><th>{{ L("time") }}</th><th>{{ L("severity") }}</th><th>Clip</th></tr>
+{% for e in events %}
+<tr>
+  <td>{{ L(e.type) }}</td>
+  <td>{{ e.start }}–{{ e.end }}</td>
+  <td><span class="score-badge {% if e.severity == 'low' %}score-good{% elif e.severity == 'medium' %}score-mid{% else %}score-bad{% endif %}">{{ e.severity }}</span></td>
+  <td>{{ e.clip or "—" }}</td>
+</tr>
+{% else %}
+<tr><td colspan="4" class="muted">{{ L("no_data") }}</td></tr>
+{% endfor %}
+</table>
+{% endblock %}

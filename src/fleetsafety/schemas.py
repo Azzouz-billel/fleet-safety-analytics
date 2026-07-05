@@ -96,6 +96,9 @@ class TripResult(BaseModel):
     trip_id: str
     driver_id: str
     vehicle_id: str
+    start_time: Optional[datetime] = None  # from meta; dates trips for trends
     summary: TripSummary
     events: list[Event] = Field(default_factory=list)
     score: Score
+    # downsampled [lat, lon] polyline (≤ ~200 points) for dashboard replay
+    route: list[tuple[float, float]] = Field(default_factory=list)

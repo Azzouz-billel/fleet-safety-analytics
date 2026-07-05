@@ -4,6 +4,7 @@ CANONICAL_RESULT = {
     "trip_id": "trip_2026-07-04_veh07",
     "driver_id": "drv_113",
     "vehicle_id": "veh_07",
+    "start_time": "2026-07-04T12:00:00Z",
     "summary": {
         "distance_km": 12.7,
         "duration_min": 10.0,
@@ -29,6 +30,7 @@ CANONICAL_RESULT = {
         }
     ],
     "score": {"value": 96.0, "breakdown": {"speeding": 4.0}},
+    "route": [[35.71, -0.63], [35.712, -0.628]],
 }
 
 

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ L("risk_map") }}</h2>
+<p class="muted">{{ L("risk_map_hint") }}</p>
+{{ map_html|safe }}
+{% endblock %}

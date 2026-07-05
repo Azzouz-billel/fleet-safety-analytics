@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ L("driver") }} — {{ d.driver_id }}</h2>
+
+{% if trend_chart %}
+<div class="card">
+  <div class="muted">{{ L("score_trend") }}</div>
+  <img class="chart" src="{{ trend_chart }}" alt="score trend">
+</div>
+{% endif %}
+
+<div class="card">
+  <div class="muted">{{ L("events") }}</div>
+  {% if d.event_types %}
+    {% for type, n in d.event_types.items() %}
+      <span class="score-badge score-mid" style="margin-right:8px">{{ L(type) }}: {{ n }}</span>
+    {% endfor %}
+  {% else %}
+    <span class="muted">{{ L("no_data") }}</span>
+  {% endif %}
+</div>
+
+<h2>{{ L("weekly_scores") }}</h2>
+<table>
+<tr><th>{{ L("week_of") }}</th><th>{{ L("safety_score") }}</th><th>{{ L("distance") }}</th>
+    <th>{{ L("trips") }}</th><th>{{ L("events") }}</th></tr>
+{% for w in d.weekly_scores|reverse %}
+<tr>
+  <td>{{ w.week }}</td>
+  <td><span class="score-badge {% if w.score >= 85 %}score-good{% elif w.score >= 65 %}score-mid{% else %}score-bad{% endif %}">{{ "%.0f"|format(w.score) }}</span></td>
+  <td>{{ w.distance_km }} km</td>
+  <td>{{ w.trip_count }}</td>
+  <td>{{ w.event_count }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<h2>{{ L("worst_trips") }}</h2>
+<table>
+<tr><th>{{ L("trips") }}</th><th>{{ L("date") }}</th><th>{{ L("safety_score") }}</th></tr>
+{% for t in d.worst_trips %}
+<tr>
+  <td><a href="/trips/{{ t.trip_id }}">{{ t.trip_id }}</a></td>
+  <td>{{ t.start_time or "—" }}</td>
+  <td><span class="score-badge {% if t.score >= 85 %}score-good{% elif t.score >= 65 %}score-mid{% else %}score-bad{% endif %}">{{ "%.0f"|format(t.score) }}</span></td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

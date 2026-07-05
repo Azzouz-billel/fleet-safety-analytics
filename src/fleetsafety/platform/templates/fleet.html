@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ L("fleet_overview") }}</h2>
+
+{% if fleet_chart %}
+<div class="card">
+  <div class="muted">{{ L("score_trend") }}</div>
+  <img class="chart" src="{{ fleet_chart }}" alt="fleet trend">
+</div>
+{% endif %}
+
+<table>
+<tr>
+  <th>{{ L("driver") }}</th>
+  <th>{{ L("safety_score") }}</th>
+  <th>{{ L("score_trend") }}</th>
+  <th>{{ L("trips") }}</th>
+  <th>{{ L("distance") }}</th>
+  <th>{{ L("events") }}</th>
+</tr>
+{% for r in rows %}
+<tr>
+  <td><a href="/drivers/{{ r.driver_id }}">{{ r.driver_id }}</a></td>
+  <td>
+    {% if r.score is not none %}
+    <span class="score-badge {% if r.score >= 85 %}score-good{% elif r.score >= 65 %}score-mid{% else %}score-bad{% endif %}">
+      {{ "%.0f"|format(r.score) }}
+    </span>
+    {% else %}<span class="muted">{{ L("no_data") }}</span>{% endif %}
+  </td>
+  <td>{{ r.sparkline|safe }}</td>
+  <td>{{ r.trip_count }}</td>
+  <td>{{ r.distance_km }} km</td>
+  <td>{{ r.event_count }}</td>
+</tr>
+{% endfor %}
+</table>
+<p class="muted">{{ L("drivers") }}: {{ rows|length }}</p>
+{% endblock %}

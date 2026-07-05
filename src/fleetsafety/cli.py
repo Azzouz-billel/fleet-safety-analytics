@@ -4,6 +4,8 @@
                                        GPS-logger export (CSV or GPX)
     fleetsafety process <trip_dir>   → <trip_dir>/out/result.json + report.html
     fleetsafety validate <trip_dir>  → device speed vs GPS-derived speed accuracy
+    fleetsafety load <result.json …> → store processed trips in the fleet DB
+    fleetsafety serve                → run the fleet API + dashboard
 
 `process` wires the full Phase 1 pipeline:
 ingest → gps → limits → events → scoring → report.
@@ -59,6 +61,7 @@ def process_trip(trip_dir: Path, out_dir: Path | None = None) -> TripResult:
         trip_id=meta.trip_id,
         driver_id=meta.driver_id,
         vehicle_id=meta.vehicle_id,
+        start_time=meta.start_time,
         summary=TripSummary(
             distance_km=round(distance_km, 2),
             duration_min=round(gps_mod.trip_duration_min(gps), 1),
@@ -68,6 +71,7 @@ def process_trip(trip_dir: Path, out_dir: Path | None = None) -> TripResult:
         ),
         events=events,
         score=score_trip(events, distance_km),
+        route=_downsample_route(gps),
     )
 
     out_dir = out_dir or trip_dir / "out"
@@ -77,6 +81,34 @@ def process_trip(trip_dir: Path, out_dir: Path | None = None) -> TripResult:
     generate_report(result, meta, gps, out_dir / "report.html")
     logger.info("wrote %s and report.html (score %.1f)", out_dir / "result.json", result.score.value)
     return result
+
+
+def _downsample_route(gps: pd.DataFrame, max_points: int = 200) -> list[tuple[float, float]]:
+    step = max(1, len(gps) // max_points)
+    sampled = gps.iloc[::step]
+    return [(round(float(lat), 5), round(float(lon), 5)) for lat, lon in zip(sampled["lat"], sampled["lon"])]
+
+
+def _load_results(result_paths: list[Path], db_path: Path) -> int:
+    """Store result.json files in the fleet DB and refresh weekly scores."""
+    from .platform.db import init_db, make_engine, session_factory
+    from .platform.periods import recompute_period_scores
+    from .platform.store import store_trip_result
+
+    engine = make_engine(db_path)
+    init_db(engine)
+    session = session_factory(engine)()
+    try:
+        loaded = 0
+        for path in result_paths:
+            result = TripResult.model_validate_json(path.read_text())
+            store_trip_result(session, result)
+            loaded += 1
+        rows = recompute_period_scores(session, "week")
+    finally:
+        session.close()
+    print(f"loaded {loaded} trip(s) into {db_path}; {rows} weekly score rows")
+    return 0
 
 
 def _vision_events(trip_dir: Path, meta: Meta, gps: pd.DataFrame) -> list[Event]:
@@ -164,8 +196,26 @@ def main(argv: list[str] | None = None) -> int:
     p_import.add_argument("--limit", type=float, default=100.0, help="default speed limit km/h")
     p_import.add_argument("--out", type=Path, default=None, help="default data/raw/<trip_id>")
 
+    p_load = sub.add_parser("load", help="store processed result.json files in the fleet DB")
+    p_load.add_argument("results", type=Path, nargs="+", help="result.json paths")
+    p_load.add_argument("--db", type=Path, default=Path("fleet.db"))
+
+    p_serve = sub.add_parser("serve", help="run the fleet API + dashboard")
+    p_serve.add_argument("--db", type=Path, default=Path("fleet.db"))
+    p_serve.add_argument("--host", default="127.0.0.1")
+    p_serve.add_argument("--port", type=int, default=8100)
+
     args = parser.parse_args(argv)
     try:
+        if args.command == "load":
+            return _load_results(args.results, args.db)
+        if args.command == "serve":
+            import uvicorn
+
+            from .platform.api import create_app
+
+            uvicorn.run(create_app(args.db), host=args.host, port=args.port)
+            return 0
         if args.command == "import":
             trip_id = args.trip_id or args.source.stem
             out_dir = args.out or Path("data/raw") / trip_id
